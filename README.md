@@ -1,0 +1,4 @@
+libsshut
+========
+
+ssh utility library
