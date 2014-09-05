@@ -69,7 +69,7 @@ make && sudo make install
 
 ### Dependencies
 
-* [libssh2](https://github.com/looran/libpcapev)
+* [libssh2](http://www.libssh2.org/)
 * libevent
 * libbsd (only at compile time for queue.h)
 
