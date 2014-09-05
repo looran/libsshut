@@ -1,13 +1,3 @@
-libsshut - ssh utility library
-==============================
-
-This is mostly a wrapper around libssh2
-* API oriented to do an action in one line (connect, execute command, copy file, ...)
-* Integrates in existing libevent event_base
-
-### Example: execute a command via SSH
-
-```
 #include <stdio.h>
 #include <event.h>
 #include <sshut.h>
@@ -54,25 +44,3 @@ main(void)
 	sshut_free(ssh);
 	return 0;
 }
-```
-
-To test this:
-```bash
-make -C examples/ && sudo ./examples/exec
-```
-
-### Install
-
-```bash
-make && sudo make install
-```
-
-### Dependencies
-
-* [libssh2](https://github.com/looran/libpcapev)
-* libevent
-* libbsd (only at compile time for queue.h)
-
-### API
-
-See https://github.com/looran/libsshut/blob/master/sshut.h
