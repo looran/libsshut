@@ -65,9 +65,9 @@ To test this:
 make -C examples/ && sudo ./examples/exec
 ```
 
-Source code of this example: https://github.com/looran/libsshut/blob/master/examples/exec.c
+Source code of this example: [examples/exec.c](examples/exec.c)
 
-Other example, push a file to the remote host: https://github.com/looran/libsshut/blob/master/examples/push.c
+Other example, push a file to the remote host: [examples/push.c](examples/push.c)
 
 ### Install
 
@@ -83,4 +83,4 @@ make && sudo make install
 
 ### API
 
-See https://github.com/looran/libsshut/blob/master/sshut.h
+See [sshut.h](sshut.h)
