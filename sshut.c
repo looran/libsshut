@@ -102,7 +102,7 @@ sshut_disconnect(struct sshut *ssh, enum sshut_error error)
 }
 
 void
-sshut_err_print(struct sshut *ssh, enum sshut_error error)
+sshut_err_print(enum sshut_error error)
 {
 	printf("sshut error: %d\n", error);
 }

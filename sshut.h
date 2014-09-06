@@ -14,20 +14,24 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <stdio.h>
+#include <sys/stat.h>
 #include <bsd/sys/queue.h>
 #include <libssh2.h>
 
 #define SSHUT_NOVERBOSE 0
 #define SSHUT_VERBOSE 1
 
+#define SSHUT_FILEBUF_SIZE 100000
+
 enum sshut_reconnect {
-	SSHUT_NORECONNECT,
-	SSHUT_RECONNECT_3TIMES,
-	SSHUT_RECONNECT_INFINITE
+	SSHUT_NORECONNECT = 0,
+	SSHUT_RECONNECT_3TIMES = 3,
+	SSHUT_RECONNECT_INFINITE = -1,
 };
 
 enum sshut_state {
-	SSHUT_STATE_UNINITIALIZED,
+	SSHUT_STATE_UNINITIALIZED = 0,
 	SSHUT_STATE_DISCONNECTED,
 	SSHUT_STATE_CONNECTING_SOCKET,
 	SSHUT_STATE_CONNECTING_HANDSHAKE,
@@ -36,32 +40,45 @@ enum sshut_state {
 };
 
 enum sshut_error {
+	SSHUT_NOERROR = 0,
 	SSHUT_ERROR_UNKNOWN_STATE,
 	SSHUT_ERROR_CONNECTION,
 	SSHUT_ERROR_HANDSHAKE,
 	SSHUT_ERROR_AUTHENTICATION,
 	SSHUT_ERROR_CONNECTION_CLOSED,
 	SSHUT_ERROR_CHANNEL_OPEN,
+	SSHUT_ERROR_CHANNEL_OPEN_SCP_SEND,
 	SSHUT_ERROR_EXEC,
 	SSHUT_ERROR_READ,
+	SSHUT_ERROR_WRITE_FROMFILE,
+	SSHUT_ERROR_SEND_EOF,
+	SSHUT_ERROR_WAIT_EOF,
+	SSHUT_ERROR_WAIT_CLOSED,
 	SSHUT_ERROR_CHANNEL_CLOSE,
 };
 
 enum sshut_actiontype {
-	SSHUT_ACTION_EXEC,
+	SSHUT_ACTION_EXEC = 0,
+	SSHUT_ACTION_PUSH = 1,
 };
 
 enum sshut_actionstate {
-	SSHUT_ACTIONSTATE_UNINITIALIZED,
+	SSHUT_ACTIONSTATE_UNINITIALIZED = 0,
 	SSHUT_ACTIONSTATE_CHANNEL_OPEN,
+	SSHUT_ACTIONSTATE_CHANNEL_OPEN_SCP_SEND,
+	SSHUT_ACTIONSTATE_CHANNEL_OPEN_SCP_RECV,
 	SSHUT_ACTIONSTATE_CHANNEL_EXEC,
 	SSHUT_ACTIONSTATE_CHANNEL_READ,
+	SSHUT_ACTIONSTATE_CHANNEL_WRITE_FROMFILE,
+	SSHUT_ACTIONSTATE_CHANNEL_SEND_EOF,
+	SSHUT_ACTIONSTATE_CHANNEL_WAIT_EOF,
+	SSHUT_ACTIONSTATE_CHANNEL_WAIT_CLOSED,
 	SSHUT_ACTIONSTATE_CHANNEL_CLOSE,
 	SSHUT_ACTIONSTATE_DONE,
 };
 
 enum sshut_credstype {
-	SSHUT_CREDSTYPE_USERPASS,
+	SSHUT_CREDSTYPE_USERPASS = 0,
 };
 
 struct sshut_creds {
@@ -85,6 +102,7 @@ struct sshut_action {
 	struct sshut *ssh;
 	enum sshut_actiontype type;
 	enum sshut_actionstate state;
+	enum sshut_error error;
 	struct event *ev_waitsocket;
 	struct event *ev_sleep;
 	struct timeval tv_sleep;
@@ -94,8 +112,18 @@ struct sshut_action {
 			char *cmd;
 			char *output;
 			int output_len;
-			void (*cbusr_done)(struct sshut_action *, char *, char *, int, void *);
+			void (*cbusr_done)(struct sshut_action *, enum sshut_error, char *, char *, int, void *);
 		} exec;
+		struct {
+			char *path_local;
+			char *path_remote;
+			FILE *file;
+			struct stat fileinfo;
+			char *filebuf;
+			int filebuf_size;
+			int filebuf_remaining;
+			void (*cbusr_done)(struct sshut_action *, enum sshut_error, void *);
+		} push;
 	} t;
 	void *cbusr_arg;
 	LIBSSH2_CHANNEL *channel;
@@ -134,15 +162,15 @@ void sshut_free(struct sshut *ssh);
 int  sshut_connect(struct sshut *ssh);
 void sshut_disconnect(struct sshut *ssh, enum sshut_error error);
 
-void sshut_err_print(struct sshut *ssh, enum sshut_error error);
+void sshut_err_print(enum sshut_error error);
 
 /* sshut_action.c */
 
 struct sshut_action *sshut_exec(struct sshut *ssh, char *cmd, 
-	void (*cbusr_done)(struct sshut_action *, char *, char *, int, void *), void *arg);
-/*struct sshut_action *sshut_push(struct sshut *ssh, char *path_local, char *path_remote,
-	void (*cb)(struct sshut *, int, void *), void *arg);
-struct sshut_action *sshut_pull(struct sshut *ssh, char *path_remote, char *path_local, int flags,
+	void (*cbusr_done)(struct sshut_action *, enum sshut_error, char *, char *, int, void *), void *arg);
+struct sshut_action *sshut_push(struct sshut *ssh, char *path_local, char *path_remote,
+	void (*cbusr_done)(struct sshut_action *, enum sshut_error, void *), void *arg);
+/*struct sshut_action *sshut_pull(struct sshut *ssh, char *path_remote, char *path_local, int flags,
 	void (*cb)(struct sshut *, int, void *), void *arg);*/
 void sshut_action_close(struct sshut_action *action);
 

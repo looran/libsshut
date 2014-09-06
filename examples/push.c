@@ -3,14 +3,12 @@
 #include <sshut.h>
 
 static void
-_cb_exec(struct sshut_action *action, enum sshut_error error, char *cmd, char *output, int output_len, void *arg)
+_cb_push(struct sshut_action *action, enum sshut_error error, void *arg)
 {
 	if (error != SSHUT_NOERROR)
 		sshut_err_print(error);
-	else {
-		printf("> %s\n", cmd);
-		printf("%s\n", output);
-	}
+	else
+		printf("Copy done\n");
 	event_base_loopbreak(action->ssh->evb);
 }
 
@@ -18,7 +16,7 @@ static void
 _cb_connect(struct sshut *ssh, void *arg)
 {
 	printf("Connected !\n");
-	sshut_exec(ssh, "uname -ap", _cb_exec, NULL);
+	sshut_push(ssh, "/etc/issue", "/tmp/pushedissue", _cb_push, NULL);
 }
 
 static void
