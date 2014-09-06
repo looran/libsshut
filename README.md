@@ -13,10 +13,14 @@ This is mostly a wrapper around libssh2
 #include <sshut.h>
 
 static void
-_cb_exec(struct sshut_action *action, char *cmd, char *output, int output_len, void *arg)
+_cb_exec(struct sshut_action *action, enum sshut_error error, char *cmd, char *output, int output_len, void *arg)
 {
-	printf("> %s\n", cmd);
-	printf("%s\n", output);
+	if (error != SSHUT_NOERROR)
+		sshut_err_print(error);
+	else {
+		printf("> %s\n", cmd);
+		printf("%s\n", output);
+	}
 	event_base_loopbreak(action->ssh->evb);
 }
 
@@ -30,8 +34,8 @@ _cb_connect(struct sshut *ssh, void *arg)
 static void
 _cb_disconnect(struct sshut *ssh, enum sshut_error error, void *arg)
 {
-	if (error)
-		sshut_err_print(ssh, error);
+	if (error != SSHUT_NOERROR)
+		sshut_err_print(error);
 	event_base_loopbreak(ssh->evb);
 }
 
