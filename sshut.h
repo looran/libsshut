@@ -1,4 +1,4 @@
-/* libsshut - ssh utility library */
+/* libsshut - ssh async client library */
 /* Copyright (c) 2014 Laurent Ghigonis <laurent@gouloum.fr>
  *
  * Permission to use, copy, modify, and distribute this software for any

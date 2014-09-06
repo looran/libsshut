@@ -1,5 +1,5 @@
-libsshut - ssh utility library
-==============================
+libsshut - ssh async client library
+===================================
 
 This is mostly a wrapper around libssh2
 * API oriented to do an action in one line (connect, execute command, copy file, ...)
