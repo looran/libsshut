@@ -65,6 +65,10 @@ To test this:
 make -C examples/ && sudo ./examples/exec
 ```
 
+Source code of this example: https://github.com/looran/libsshut/blob/master/examples/exec.c
+
+Other example, push a file to the remote host: https://github.com/looran/libsshut/blob/master/examples/push.c
+
 ### Install
 
 ```bash
